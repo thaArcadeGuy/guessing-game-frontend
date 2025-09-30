@@ -90,6 +90,11 @@ export default function Lobby({ socket, onJoinSession }) {
       return;
     }
 
+    console.log("🔄 Joining session...");
+    console.log("Session code:", sessionCode);
+    console.log("Player name:", playerName);
+    console.log("Socket ID:", socket.id);
+
     socket.emit(
       "join-session",
       {
@@ -97,13 +102,17 @@ export default function Lobby({ socket, onJoinSession }) {
         playerName: playerName.trim(),
       },
       (response) => {
-        if (response.error) {
+        console.log("📨 Join session callback:", response);
+        if (response && response.error) {
+          console.log("Join failed:", response.error);
           alert(`Failed to join session: ${response.error}`);
+        } else if (response && response.session) {
+          console.log("Joined session successfully!");
+          console.log("Session:", response.session);
+          onJoinSession(response.session);
         } else {
-          onJoinSession(response.session || { 
-            id: sessionCode.trim(), 
-            status: "waiting" 
-          });
+          console.log("Unexpected response:", response);
+          alert("Failed to join session - no response received");
         }
       }
     );
