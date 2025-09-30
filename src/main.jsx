@@ -24,22 +24,44 @@ function App() {
   };
 
   if (!socket) {
-    return <div className="loading">Connecting to server...</div>;
+    return (
+      <div className="loading">
+        <div>Connecting to {config.socketUrl}...</div>
+        <div className="environment-badge">{config.environment}</div>
+      </div>
+    );
   }
 
   return (
     <div className="app">
       <header className="app-header">
-        <h1>Guessing Game</h1>
-        <div className="connection-status">
-          Status: {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
+        <div className="app-title">
+          <h1>🎯 {config.appName}</h1>
+          <div className="app-version">v{config.appVersion}</div>
+        </div>
+        
+        <div className="connection-info">
+          <div className="connection-status">
+            Status: {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
+            {socket && ` (ID: ${socket.id})`}
+          </div>
+          <div className="environment-info">
+            <span className={`environment-badge ${config.environment}`}>
+              {config.environment}
+            </span>
+            <span className="server-url">
+              {config.socketUrl.replace("https://", "").replace("http://", "")}
+            </span>
+          </div>
         </div>
       </header>
 
       {error && (
         <div className="error-banner">
-          {error}
-          <button onClick={() => setError(null)}>×</button>
+          <div className="error-content">
+            <span>{error}</span>
+            <button onClick={() => setError(null)}>×</button>
+          </div>
         </div>
       )}
 
@@ -59,6 +81,16 @@ function App() {
           />
         )}
       </main>
+
+      {/* Development-only debug info */}
+      {config.isDevelopment && (
+        <footer className="dev-footer">
+          <details>
+            <summary>🔧 Development Info</summary>
+            <pre>{JSON.stringify(config, null, 2)}</pre>
+          </details>
+        </footer>
+      )}
     </div>
   );
 }

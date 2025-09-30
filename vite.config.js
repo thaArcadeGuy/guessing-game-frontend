@@ -7,7 +7,7 @@ export default defineConfig({
     port: 4001, 
     proxy: {
       "/socket.io": {
-        target: "http://localhost:4000",
+        target: "https://guessing-game-backend-y7a9.onrender.com",
         changeOrigin: true,
         ws: true
       }
