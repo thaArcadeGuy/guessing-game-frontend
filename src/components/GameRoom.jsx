@@ -17,6 +17,7 @@ export default function GameRoom({ socket, session, onLeaveSession }) {
       setGameState("in-progress");
       setCurrentQuestion(data.question);
       setTimeRemaining(data.timeRemaining);
+      setGameResult(null);
     });
 
     socket.on("timer-update", (data) => {
@@ -25,6 +26,7 @@ export default function GameRoom({ socket, session, onLeaveSession }) {
 
     socket.on("game-ended", (data) => {
       setGameState("ended");
+      setGameResult(data);
       // Update scores
       if (data.players) {
         setPlayers(data.players);
@@ -39,6 +41,7 @@ export default function GameRoom({ socket, session, onLeaveSession }) {
       setGameState("waiting");
       setCurrentQuestion("");
       setTimeRemaining(60);
+      setGameResult(null);
       if (data.players) {
         setPlayers(data.players);
       }
@@ -46,9 +49,9 @@ export default function GameRoom({ socket, session, onLeaveSession }) {
 
     socket.on("answer-result", (data) => {
       if (data.correct) {
-        alert("Correct! You won this round!");
-      } else {
-        alert(`Wrong! ${data.attemptsLeft} attempts left`);
+        // 
+      } else if (data.attemptsLeft === 0) {
+        alert("No more attempts left!");
       }
     });
 
@@ -68,14 +71,17 @@ export default function GameRoom({ socket, session, onLeaveSession }) {
     <div className="game-room">
       <div className="game-header">
         <div className="session-info">
-          <h2>Session: {session.id}</h2>
-          <div>Status: {gameState}</div>
-          {gameState === "in-progress" && (
-            <div className="timer">Time: {timeRemaining}s</div>
+          <h2>Game Session</h2>
+          <div className="session-code">Code: <strong>{session.id}</strong></div>
+          <div className="game-status">Status: <span className={`status-${gameState}`}>{gameState}</span></div>
+          {gameState === 'in-progress' && (
+            <div className="timer">
+              Time: <span className={timeRemaining <= 10 ? 'time-warning' : ''}>{timeRemaining}s</span>
+            </div>
           )}
         </div>
         <button onClick={onLeaveSession} className="leave-btn">
-          Leave Session
+          Leave Game
         </button>
       </div>
 
@@ -85,37 +91,61 @@ export default function GameRoom({ socket, session, onLeaveSession }) {
         </div>
 
         <div className="game-area">
-          {gameState === "waiting" && (
+          {gameState === 'waiting' && (
             <div className="waiting-room">
-              <h3>Waiting for players...</h3>
-              <p>Share this code with friends: <strong>{session.id}</strong></p>
-              <p>Players joined: {players.length}</p>
+              <h3>Waiting Room</h3>
+              <div className="session-share">
+                <p>Share this code with friends:</p>
+                <div className="session-code-large">{session.id}</div>
+              </div>
               
-              {isGameMaster && (
+              <div className="players-count">
+                Players joined: <strong>{players.length}</strong>
+              </div>
+              
+              {isGameMaster ? (
                 <div className="game-master-controls">
-                  <p>You are the Game Master</p>
+                  <h4>You are the Game Master</h4>
+                  <p>Create a question to start the game!</p>
                   <button 
                     onClick={() => {
-                      const question = prompt("Enter your question:");
-                      const answer = prompt("Enter the answer:");
-                      if (question && answer) {
-                        socket.emit("start-game", { 
-                          sessionId: session.id,
-                          question, 
-                          answer 
-                        });
+                      const question = prompt('Enter your question:');
+                      if (!question || question.trim().length < 5) {
+                        alert('Question must be at least 5 characters long');
+                        return;
                       }
+                      
+                      const answer = prompt('Enter the answer:');
+                      if (!answer || answer.trim().length < 1) {
+                        alert('Answer cannot be empty');
+                        return;
+                      }
+                      
+                      socket.emit('start-game', { 
+                        sessionId: session.id,
+                        question: question.trim(), 
+                        answer: answer.trim()
+                      });
                     }}
                     disabled={players.length < 2}
+                    className="start-game-btn"
                   >
                     Start Game ({players.length}/2+ players)
                   </button>
+                  {players.length < 2 && (
+                    <p className="need-players-warning">Need at least 2 players to start</p>
+                  )}
+                </div>
+              ) : (
+                <div className="player-waiting">
+                  <p>Waiting for the game master to start the game...</p>
+                  <p>Current game master: {players.find(p => p.isGameMaster)?.name}</p>
                 </div>
               )}
             </div>
           )}
 
-          {gameState === "in-progress" && (
+          {gameState === 'in-progress' && (
             <QuestionDisplay
               question={currentQuestion}
               socket={socket}
@@ -124,8 +154,11 @@ export default function GameRoom({ socket, session, onLeaveSession }) {
             />
           )}
 
-          {gameState === "ended" && (
-            <Scoreboard players={players} />
+          {gameState === 'ended' && (
+            <Scoreboard 
+              players={players} 
+              gameResult={gameResult}
+            />
           )}
         </div>
       </div>
