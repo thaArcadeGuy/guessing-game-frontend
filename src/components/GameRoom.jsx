@@ -74,9 +74,9 @@ export default function GameRoom({ socket, session, onLeaveSession }) {
           <h2>Game Session</h2>
           <div className="session-code">Code: <strong>{session.id}</strong></div>
           <div className="game-status">Status: <span className={`status-${gameState}`}>{gameState}</span></div>
-          {gameState === 'in-progress' && (
+          {gameState === "in-progress" && (
             <div className="timer">
-              Time: <span className={timeRemaining <= 10 ? 'time-warning' : ''}>{timeRemaining}s</span>
+              Time: <span className={timeRemaining <= 10 ? "time-warning" : ""}>{timeRemaining}s</span>
             </div>
           )}
         </div>
@@ -91,12 +91,15 @@ export default function GameRoom({ socket, session, onLeaveSession }) {
         </div>
 
         <div className="game-area">
-          {gameState === 'waiting' && (
+          {gameState === "waiting" && (
             <div className="waiting-room">
               <h3>Waiting Room</h3>
               <div className="session-share">
                 <p>Share this code with friends:</p>
-                <div className="session-code-large">{session.id}</div>
+                <div className="session-code-large" style={{fontFamily: "monospace", fontSize: "1.5em"}}>
+                  {session.id}
+                </div>
+                <p><small>Make sure to copy exactly as shown</small></p>
               </div>
               
               <div className="players-count">
@@ -109,19 +112,19 @@ export default function GameRoom({ socket, session, onLeaveSession }) {
                   <p>Create a question to start the game!</p>
                   <button 
                     onClick={() => {
-                      const question = prompt('Enter your question:');
+                      const question = prompt("Enter your question:");
                       if (!question || question.trim().length < 5) {
-                        alert('Question must be at least 5 characters long');
+                        alert("Question must be at least 5 characters long");
                         return;
                       }
                       
-                      const answer = prompt('Enter the answer:');
+                      const answer = prompt("Enter the answer:");
                       if (!answer || answer.trim().length < 1) {
-                        alert('Answer cannot be empty');
+                        alert("Answer cannot be empty");
                         return;
                       }
                       
-                      socket.emit('start-game', { 
+                      socket.emit("start-game", { 
                         sessionId: session.id,
                         question: question.trim(), 
                         answer: answer.trim()
@@ -145,7 +148,7 @@ export default function GameRoom({ socket, session, onLeaveSession }) {
             </div>
           )}
 
-          {gameState === 'in-progress' && (
+          {gameState === "in-progress" && (
             <QuestionDisplay
               question={currentQuestion}
               socket={socket}
@@ -154,7 +157,7 @@ export default function GameRoom({ socket, session, onLeaveSession }) {
             />
           )}
 
-          {gameState === 'ended' && (
+          {gameState === "ended" && (
             <Scoreboard 
               players={players} 
               gameResult={gameResult}

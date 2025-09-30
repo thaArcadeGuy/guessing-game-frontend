@@ -5,6 +5,20 @@ export default function Lobby({ socket, onJoinSession }) {
   const [sessionCode, setSessionCode] = useState("");
   const [sessions, setSessions] = useState([]);
   const [isCreating, setIsCreating] = useState(false);
+  const [availableSessions, setAvailableSessions] = useState([]);
+
+  const listSessions = () => {
+    socket.emit("list-sessions", {}, (response) => {
+      console.log("📋 Available sessions:", response);
+      if (response.sessions) {
+        setAvailableSessions(response.sessions);
+      }
+    });
+  };
+
+  useEffect(() => {
+    listSessions();
+  }, [socket]);
 
   useEffect(() => {
     if (!socket) return;
@@ -38,13 +52,13 @@ export default function Lobby({ socket, onJoinSession }) {
       return;
     }
 
-    console.log('=== SESSION CREATION DEBUG ===');
-    console.log('1. Emitting create-session event');
-    console.log('2. Player name:', playerName);
-    console.log('3. Socket connected:', socket.connected);
-    console.log('4. Socket ID:', socket.id);
+    console.log("Creating session...");
+    console.log("Player name:", playerName);
+    console.log("Socket ID:", socket.id);
+
 
     setIsCreating(true);
+
     socket.emit(
       "create-session",
       { playerName: playerName.trim() },
@@ -52,16 +66,19 @@ export default function Lobby({ socket, onJoinSession }) {
         console.log("Server response:", response);
         setIsCreating(false);
 
-        if (response.error) {
+        if (response && response.error) {
           alert(`Failed to create session: ${response.error}`);
-        } else {
+        } else if (response && response.sessionId) {
           console.log("Session created successfully:", response);
+          console.log("Session ID:", response.sessionId);
 
-          onJoinSession({
-            id: response.sessionId,
-            players: [],
-            status: "waiting"
-          });
+          // Store the session ID exactly as received from backend
+          setSessionCode(response.sessionId);
+
+          onJoinSession(response.session);
+        } else {
+          console.log("Unexpected response:", response);
+          alert("Failed to create session - no response received");
         }
       }
     );
@@ -134,23 +151,18 @@ export default function Lobby({ socket, onJoinSession }) {
       {sessions.length > 0 && (
         <div className="lobby-section">
           <h2>Available Sessions</h2>
+          <button onClick={listSessions}>Refresh Sessions</button>
           <div className="sessions-list">
-            {sessions.map((session) => (
+            {availableSessions.map(session => (
               <div key={session.id} className="session-item">
-                <div>Code: {session.id}</div>
+                <div>ID: {session.id}</div>
                 <div>Players: {session.playerCount}</div>
                 <div>Status: {session.status}</div>
-                <div>Host: {session.masterName}</div>
-                <button
-                  onClick={() => {
-                    setSessionCode(session.id);
-                    if (playerName.trim()) {
-                      joinSession();
-                    }
-                  }}
-                  disabled={session.status !== "waiting"}
-                >
-                  {session.status === "waiting" ? "Join" : "In Progress"}
+                <button onClick={() => {
+                  setSessionCode(session.id);
+                  if (playerName.trim()) joinSession();
+                }}>
+                  Join
                 </button>
               </div>
             ))}
