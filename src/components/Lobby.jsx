@@ -10,8 +10,18 @@ export default function Lobby({ socket, onJoinSession }) {
   const listSessions = () => {
     socket.emit("list-sessions", {}, (response) => {
       console.log("📋 Available sessions:", response);
-      if (response.sessions) {
+      if (response && response.sessions) {
         setAvailableSessions(response.sessions);
+        console.log("Sessions loaded:", response.sessions.length);
+      } else if (response && response.error) {
+        console.log("Error loading sessions:", response.error);
+      }
+    });
+
+    socket.once("sessions-list", (data) => {
+      console.log("Sessions list event:", data);
+      if (data.sessions) {
+        setAvailableSessions(data.sessions);
       }
     });
   };
