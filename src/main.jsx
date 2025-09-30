@@ -13,7 +13,7 @@ import React, { useState } from "react";
 import { useSocket } from "./hooks/useSocket";
 import Lobby from "./components/Lobby";
 import GameRoom from "./components/GameRoom";
-import "./styles/App.css";
+// import "./styles/App.css";
 
 function App() {
   const { socket, isConnected, error, setError } = useSocket();
