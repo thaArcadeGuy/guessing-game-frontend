@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, } from "react";
 import { io } from "socket.io-client";
 import config from "../utils/config";
 
@@ -6,10 +6,12 @@ export function useSocket() {
   const [socket, setSocket] = useState(null);
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState(null);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
     console.log(`🔌 Connecting to: ${config.socketUrl}`);
     console.log(`🌍 Environment: ${config.environment}`);
+    console.log(`🚀 Platform: ${config.platform}`);
 
     const newSocket = io(config.socketUrl, {
       autoConnect: true,
@@ -18,7 +20,8 @@ export function useSocket() {
         reconnection: true,
         reconnectionAttempts: 5,
         reconnectionDelay: 1000,
-        timeout: 10000,
+        reconnectionDelayMax: 5000,
+        timeout: 20000,
       })
     });
 
@@ -39,11 +42,24 @@ export function useSocket() {
 
     newSocket.on("connect_error", (error) => {
       console.error("Connection error:", error.message);
+      const newRetryCount = retryCount + 1;
+      setRetryCount(newRetryCount);
+
       setError(`Cannot connect to server: ${config.socketUrl}`);
 
-      if (config.isDevelopment && error.message.includes("ECONNREFUSED")) {
-        setError(`Development: Make sure backend is running on ${config.socketUrl}`);
+      if (config.isProduction) {
+        setError(`Connection issue (attempt ${newRetryCount}). Retrying...`);
+      } else {
+        setError(`Cannot connect to ${config.socketUrl}. Make sure backend is running.`);
       }
+    });
+
+    newSocket.on("reconnect_attempt", (attempt) => {
+      console.log(`🔄 Reconnection attempt ${attempt}`);
+    });
+
+    newSocket.on("reconnect_failed", () => {
+      setError("Failed to connect to server. Please refresh the page.");
     });
 
     newSocket.on("error", (errorData) => {

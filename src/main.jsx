@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useSocket } from "./hooks/useSocket";
 import Lobby from "./components/Lobby";
 import GameRoom from "./components/GameRoom";
+import config from "./utils/config";
 import "./styles/App.css";
 
 function App() {
@@ -36,7 +37,7 @@ function App() {
     <div className="app">
       <header className="app-header">
         <div className="app-title">
-          <h1>🎯 {config.appName}</h1>
+          <h1>{config.appName}</h1>
           <div className="app-version">v{config.appVersion}</div>
         </div>
         
@@ -86,7 +87,7 @@ function App() {
       {config.isDevelopment && (
         <footer className="dev-footer">
           <details>
-            <summary>🔧 Development Info</summary>
+            <summary>Development Info</summary>
             <pre>{JSON.stringify(config, null, 2)}</pre>
           </details>
         </footer>

@@ -11,6 +11,9 @@ const config = {
   environment: import.meta.env.VITE_NODE_ENV || "development",
   isDevelopment: import.meta.env.VITE_NODE_ENV === "development",
   isProduction: import.meta.env.VITE_NODE_ENV === "production",
+
+  // Platform
+  platform: "vercel",
   
   // Feature Flags (optional)
   enableDebug: import.meta.env.VITE_ENABLE_DEBUG === "true",
@@ -21,13 +24,18 @@ if (!config.apiUrl) {
   console.warn("VITE_API_URL is not set, using default:", config.apiUrl);
 }
 
-if (!config.socketUrl) {
-  console.warn("VITE_SOCKET_URL is not set, using default:", config.socketUrl);
+if (config.isProduction && config.socketUrl.includes("localhost")) {
+  console.warn("Production environment using localhost - check VITE_SOCKET_URL");
 }
 
 // Log configuration in development
 if (config.isDevelopment) {
-  console.log("App Configuration:", config);
+  console.log("App Configuration:", {
+    ...config,
+    // Don"t log full URLs in production
+    apiUrl: config.isDevelopment ? config.apiUrl : "[hidden]",
+    socketUrl: config.isDevelopment ? config.socketUrl : "[hidden]"
+  });
 }
 
 export default config;

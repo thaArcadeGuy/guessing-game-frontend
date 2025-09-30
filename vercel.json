@@ -1,0 +1,24 @@
+{
+  "version": 2,
+  "name": "guessing-game-frontend",
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "VITE_API_URL": "https://guessing-game-backend-y7a9.onrender.com",
+    "VITE_SOCKET_URL": "https://guessing-game-backend-y7a9.onrender.com", 
+    "VITE_NODE_ENV": "production"
+  }
+}

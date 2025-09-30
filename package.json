@@ -1,6 +1,7 @@
 {
   "name": "guessing-game-frontend",
   "version": "1.0.0",
+  "type": "module",
   "main": "index.jsx",
   "scripts": {
     "dev": "vite",
