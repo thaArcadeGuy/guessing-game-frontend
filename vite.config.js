@@ -7,13 +7,22 @@ export default defineConfig({
     port: 4001, 
     proxy: {
       "/socket.io": {
-        target: "https://guessing-game-backend-y7a9.onrender.com",
+        target: "http://localhost:4000",
         changeOrigin: true,
         ws: true
       }
     }
   },
-  define: {
-    "process.env": {}
-  }
+  build: {
+     outDir: "dist",
+    sourcemap: false,
+    minify: "esbuild",
+    terserOptions: {
+      compress: {
+        drop_console: true,
+      },
+    },
+  },
+  // Remove the base property or set it to empty
+  base: "",
 });
