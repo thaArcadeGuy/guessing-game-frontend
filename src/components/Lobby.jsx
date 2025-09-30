@@ -38,15 +38,33 @@ export default function Lobby({ socket, onJoinSession }) {
       return;
     }
 
+    console.log('=== SESSION CREATION DEBUG ===');
+    console.log('1. Emitting create-session event');
+    console.log('2. Player name:', playerName);
+    console.log('3. Socket connected:', socket.connected);
+    console.log('4. Socket ID:', socket.id);
+
     setIsCreating(true);
-    socket.emit("create_session", { name: playerName.trim() }, (response) => {
-      setIsCreating(false);
-      if (response.error) {
-        alert(`Failed to create session: ${response.error}`);
-      } else {
-        onJoinSession(response.session);
+    socket.emit(
+      "create-session",
+      { playerName: playerName.trim() },
+      (response) => {
+        console.log("Server response:", response);
+        setIsCreating(false);
+
+        if (response.error) {
+          alert(`Failed to create session: ${response.error}`);
+        } else {
+          console.log("Session created successfully:", response);
+
+          onJoinSession({
+            id: response.sessionId,
+            players: [],
+            status: "waiting"
+          });
+        }
       }
-    });
+    );
   };
 
   const joinSession = () => {
@@ -55,16 +73,23 @@ export default function Lobby({ socket, onJoinSession }) {
       return;
     }
 
-    socket.emit("join_session", { 
-      sessionId: sessionCode.trim(), 
-      name: playerName.trim() 
-    }, (response) => {
-      if (response.error) {
-        alert(`Failed to join session: ${response.error}`);
-      } else {
-        onJoinSession(response.session);
+    socket.emit(
+      "join-session",
+      {
+        sessionId: sessionCode.trim(),
+        playerName: playerName.trim(),
+      },
+      (response) => {
+        if (response.error) {
+          alert(`Failed to join session: ${response.error}`);
+        } else {
+          onJoinSession(response.session || { 
+            id: sessionCode.trim(), 
+            status: "waiting" 
+          });
+        }
       }
-    });
+    );
   };
 
   return (
@@ -82,8 +107,8 @@ export default function Lobby({ socket, onJoinSession }) {
 
       <div className="lobby-section">
         <h2>Create New Game</h2>
-        <button 
-          onClick={createSession} 
+        <button
+          onClick={createSession}
           disabled={!playerName.trim() || isCreating}
         >
           {isCreating ? "Creating..." : "Create New Session"}
@@ -98,7 +123,7 @@ export default function Lobby({ socket, onJoinSession }) {
           value={sessionCode}
           onChange={(e) => setSessionCode(e.target.value.toUpperCase())}
         />
-        <button 
+        <button
           onClick={joinSession}
           disabled={!playerName.trim() || !sessionCode.trim()}
         >
@@ -110,13 +135,13 @@ export default function Lobby({ socket, onJoinSession }) {
         <div className="lobby-section">
           <h2>Available Sessions</h2>
           <div className="sessions-list">
-            {sessions.map(session => (
+            {sessions.map((session) => (
               <div key={session.id} className="session-item">
                 <div>Code: {session.id}</div>
                 <div>Players: {session.playerCount}</div>
                 <div>Status: {session.status}</div>
                 <div>Host: {session.masterName}</div>
-                <button 
+                <button
                   onClick={() => {
                     setSessionCode(session.id);
                     if (playerName.trim()) {
