@@ -541,3 +541,49 @@ button:hover:not(:disabled) {
   50% { opacity: 0.5; }
   100% { opacity: 1; }
 }
+
+/* Player notifications */
+.player-notification {
+  background: #4CAF50;
+  color: white;
+  padding: 8px 12px;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  text-align: center;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(-10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.waiting-for-players {
+  background: #FFF3CD;
+  color: #856404;
+  padding: 10px;
+  border-radius: 4px;
+  text-align: center;
+  margin-top: 10px;
+  font-size: 0.9em;
+}
+
+/* Enhanced player cards */
+.player-card {
+  transition: all 0.3s ease;
+}
+
+.player-card:hover {
+  transform: translateX(5px);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* Real-time update indicator */
+.player-card.new-player {
+  animation: highlight 2s ease;
+}
+
+@keyframes highlight {
+  0% { background: #e8f5e8; }
+  100% { background: white; }
+}
