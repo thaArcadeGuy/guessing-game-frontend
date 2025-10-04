@@ -111,7 +111,11 @@ export default function GameRoom({ socket, session, onLeaveSession }) {
 
       <div className="game-layout">
         <div className="players-panel">
-          <PlayerList players={players} currentPlayerId={socket.id} />
+          <PlayerList 
+            players={players} 
+            currentPlayerId={socket.id}
+            socket={socket} 
+          />
         </div>
 
         <div className="game-area">
