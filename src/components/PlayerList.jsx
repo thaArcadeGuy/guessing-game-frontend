@@ -1,9 +1,37 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 
-export default function PlayerList({ players, currentPlayerId }) {
+export default function PlayerList({ players, currentPlayerId, socket }) {
+  const [notification, setNotification] = useState("");
+  
+  useEffect(() => {
+    if (!socket) return;
+
+    // Listen for player join/leave
+    socket.on("session-updated", (data) => {
+      if (data.type === "player-joined") {
+        setNotification(`${data.playerName} joined`);
+      } else if (data.type === "player-left") {
+        setNotification("Player left")
+      }
+
+      setTimeout(() => setNotification(""), 3000);
+
+      return () => {
+        socket.off("session-updated");
+      };
+    }, [socket]);
+  });
+
   return (
     <div className="player-list">
       <h3>Players ({players.length})</h3>
+      
+      {notification && (
+        <div className="player-notification">
+          {notification}
+        </div>
+      )}
+
       <div className="players-container">
         {players.map(player => (
           <div 
@@ -20,20 +48,19 @@ export default function PlayerList({ players, currentPlayerId }) {
             
             <div className="player-stats">
               <div className="player-score">Score: {player.score}</div>
-              
-              {player.hasAnswered && (
-                <div className="player-status answered">Answered</div>
-              )}
-              
-              {player.attempts > 0 && !player.hasAnswered && (
-                <div className="player-status guessing">
-                  Attempts: {player.attempts}/3
-                </div>
-              )}
+              <div className="player-status">
+                {player.hasAnswered ? "Answered" : "Waiting"}
+              </div>
             </div>
           </div>
         ))}
       </div>
+
+      {players.length === 1 && (
+        <div className="waiting-for-players">
+          Waiting for more players to join...
+        </div>
+      )}
     </div>
   );
 }
