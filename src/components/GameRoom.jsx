@@ -12,6 +12,27 @@ export default function GameRoom({ socket, session, onLeaveSession }) {
   useEffect(() => {
     if (!socket) return;
 
+    // Listen for real time session
+    socket.on("session-updated", (data) => {
+      console.log("Session updated:", data);
+
+      if (data.type === "player-joined") {
+        console.log(`New player joined: ${data.playerName}`);
+        alert(`${data.playerName} joined the game!`);
+      }
+
+      if (data.type === "player-left") {
+        console.log(`Player left: ${data.playerName}`);
+        alert(`${data.playerName} left the game`);
+      }
+
+      if(data.players) {
+        setPlayers(data.players);
+      }
+    });
+
+
+
     // Game events
     socket.on("game-started", (data) => {
       setGameState("in-progress");
@@ -62,6 +83,9 @@ export default function GameRoom({ socket, session, onLeaveSession }) {
       socket.off("session_update");
       socket.off("new-round-ready");
       socket.off("answer-result");
+      socket.off("session-updated");
+      socket.off("player-joined");
+      socket.off("player-left");
     };
   }, [socket]);
 
