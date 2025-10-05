@@ -5,7 +5,7 @@ import Scoreboard from "./Scoreboard";
 
 export default function GameRoom({ socket, session, onLeaveSession }) {
   const [gameState, setGameState] = useState(session.status);
-  const [currentQuestion, setCurrentQuestion] = useState("");
+  const [currentQuestion, setCurrentQuestion] = useState(session.currentQuestion || "");
   const [timeRemaining, setTimeRemaining] = useState(60);
   const [players, setPlayers] = useState(Array.from(session.players?.values() || []));
 
@@ -37,7 +37,7 @@ export default function GameRoom({ socket, session, onLeaveSession }) {
     socket.on("game-started", (data) => {
       setGameState("in-progress");
       setCurrentQuestion(data.question);
-      setTimeRemaining(data.timeRemaining);
+      setTimeRemaining(data.timeRemaining || 60);
       setGameResult(null);
     });
 
@@ -56,6 +56,8 @@ export default function GameRoom({ socket, session, onLeaveSession }) {
 
     socket.on("session_update", (updatedSession) => {
       setPlayers(Array.from(updatedSession.players?.values() || []));
+      setGameState(updatedSession.status);
+      setCurrentQuestion(updatedSession.currentQuestion || "");
     });
 
     socket.on("new-round-ready", (data) => {
