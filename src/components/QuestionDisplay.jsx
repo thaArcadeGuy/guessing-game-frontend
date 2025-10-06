@@ -68,7 +68,7 @@ export default function QuestionDisplay({ question, socket, sessionId, isGameMas
         <h3>You are the Game Master</h3>
         <div className="current-question">
           <h4>Current Question:</h4>
-          <p className="question-text">{question}</p>
+          <p className="question-text">{question || "No question set"}</p>
         </div>
         <div className="game-master-info">
           <p>Watch players guess your question</p>
@@ -87,9 +87,9 @@ export default function QuestionDisplay({ question, socket, sessionId, isGameMas
         </div>
       </div>
       
-      <div className="question-text">{question}</div>
+      <div className="question-text">{question || "Waiting for question..."}</div>
       
-      {!hasAnswered && attemptsLeft > 0 ? (
+      {question && !hasAnswered && attemptsLeft > 0 ? (
         <div className="guess-input-section">
           <input
             type="text"

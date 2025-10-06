@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import PlayerList from "./PlayerList";
 import QuestionDisplay from "./QuestionDisplay";
 import Scoreboard from "./Scoreboard";
+import ChatInterface from "./ChatInterface";
 
 export default function GameRoom({ socket, session, onLeaveSession }) {
   const [gameState, setGameState] = useState(session.status);
@@ -193,6 +194,15 @@ export default function GameRoom({ socket, session, onLeaveSession }) {
               gameResult={gameResult}
             />
           )}
+        </div>
+
+        <div className="chat-panel">
+          <ChatInterface
+            socket={socket}
+            session={session}
+            currentPlayerId={socket.id}
+          />
+
         </div>
       </div>
     </div>
