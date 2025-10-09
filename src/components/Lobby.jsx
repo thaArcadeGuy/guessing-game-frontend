@@ -33,26 +33,26 @@ export default function Lobby({ socket, onJoinSession }) {
   useEffect(() => {
     if (!socket) return;
 
-    // Listen for session updates
-    socket.on("session_update", (session) => {
-      console.log("Session updated:", session);
-    });
+    console.log('🏛️ Lobby mounted, setting up listeners');
 
     // Listen for errors
-    socket.on("error", (error) => {
+    const handleError = (error) => {
+      console.error('❌ Lobby error:', error);
       alert(`Error: ${error.message}`);
-    });
+    };
+
+    socket.on("error", handleError);
 
     // Load available sessions
     socket.emit("list_sessions", {}, (response) => {
-      if (response.sessions) {
+      if (response && response.sessions) {
         setSessions(response.sessions);
       }
     });
 
     return () => {
-      socket.off("session_update");
-      socket.off("error");
+      console.log('🧹 Lobby unmounting, cleaning up listeners');
+      socket.off("error", handleError);
     };
   }, [socket]);
 
@@ -62,10 +62,9 @@ export default function Lobby({ socket, onJoinSession }) {
       return;
     }
 
-    console.log("Creating session...");
+    console.log("🎮 Creating session...");
     console.log("Player name:", playerName);
     console.log("Socket ID:", socket.id);
-
 
     setIsCreating(true);
 
@@ -73,21 +72,23 @@ export default function Lobby({ socket, onJoinSession }) {
       "create-session",
       { playerName: playerName.trim() },
       (response) => {
-        console.log("Server response:", response);
+        console.log("📨 Create session response:", response);
         setIsCreating(false);
 
         if (response && response.error) {
           alert(`Failed to create session: ${response.error}`);
         } else if (response && response.sessionId) {
-          console.log("Session created successfully:", response);
+          console.log("✅ Session created successfully!");
           console.log("Session ID:", response.sessionId);
+          console.log("Full session object:", response.session);
 
-          // Store the session ID exactly as received from backend
+          // Store the session ID
           setSessionCode(response.sessionId);
 
+          // Pass session to parent - this should only happen ONCE
           onJoinSession(response.session);
         } else {
-          console.log("Unexpected response:", response);
+          console.log("⚠️ Unexpected response:", response);
           alert("Failed to create session - no response received");
         }
       }
@@ -113,15 +114,19 @@ export default function Lobby({ socket, onJoinSession }) {
       },
       (response) => {
         console.log("📨 Join session callback:", response);
+        
         if (response && response.error) {
-          console.log("Join failed:", response.error);
+          console.error("❌ Join failed:", response.error);
           alert(`Failed to join session: ${response.error}`);
         } else if (response && response.session) {
-          console.log("Joined session successfully!");
+          console.log("✅ Joined session successfully!");
           console.log("Session:", response.session);
+          console.log("Players in session:", response.session.players?.length || 'unknown');
+          
+          // Pass session to parent - this should only happen ONCE
           onJoinSession(response.session);
         } else {
-          console.log("Unexpected response:", response);
+          console.error("⚠️ Unexpected response:", response);
           alert("Failed to join session - no response received");
         }
       }
